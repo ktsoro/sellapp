@@ -13,9 +13,9 @@
     </div>
   </div>
   <div id="app"></div>
-  <keep-alive>
+  
     <router-view></router-view>
-  </keep-alive>
+
   </div>
 </template>
 <!--？？？？？在template中-没有影响到代码的识别？？？？？？？？？？？？？-->
