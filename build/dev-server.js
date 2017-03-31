@@ -20,26 +20,28 @@ var ratings = appData.ratings;
 
 var apiRoutes = express.Router();
 
-apiRoutes.get('/seller',function(req,res){
+apiRoutes.get('/seller', function (req,res){
   res.json({
-    errno:0,
-    data:seller
+    errno: 0,
+    data: seller
   });
 });
 
-apiRoutes.get('/goods',function(req,res){
-  res,json({
-    errno:0,
-    data:goods
+apiRoutes.get('/goods', function(req,res){
+  res.json({
+    errno: 0,
+    data: goods
   });
 });
 
-apiRoutes.get('/ratings',function(req,res){
+apiRoutes.get('/ratings', function(req,res){
   res.json({
-    errno:0,
-    data:ratings
+    errno: 0,
+    data: ratings
   });
 });
+
+app.use('/api',apiRoutes);
 
 // default port where dev server listens for incoming traffic
 var port = process.env.PORT || config.dev.port
@@ -48,7 +50,6 @@ var autoOpenBrowser = !!config.dev.autoOpenBrowser
 // Define HTTP proxies to your custom API backend
 // https://github.com/chimurai/http-proxy-middleware
 var proxyTable = config.dev.proxyTable
-
 var app = express()
 var compiler = webpack(webpackConfig)
 
