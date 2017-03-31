@@ -40,7 +40,7 @@ apiRoutes.get('/ratings', function(req,res){
     data: ratings
   });
 });
-
+var app = express()
 app.use('/api',apiRoutes);
 
 // default port where dev server listens for incoming traffic
@@ -50,7 +50,7 @@ var autoOpenBrowser = !!config.dev.autoOpenBrowser
 // Define HTTP proxies to your custom API backend
 // https://github.com/chimurai/http-proxy-middleware
 var proxyTable = config.dev.proxyTable
-var app = express()
+
 var compiler = webpack(webpackConfig)
 
 var devMiddleware = require('webpack-dev-middleware')(compiler, {
