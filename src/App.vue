@@ -1,6 +1,6 @@
 <template>
   <div>
-  <vheader></vheader>
+  <v-header :seller="seller"></v-header>
   <div class="tab" >
     <div class="tab-item">
       <router-link to="/goods">商品</router-link>
@@ -13,14 +13,14 @@
     </div>
   </div>
   <div id="app"></div>
-  
-    <router-view></router-view>
-
+  <keep-alive>
+      <router-view :seller="seller"></router-view>
+  </keep-alive>
   </div>
 </template>
 <!--？？？？？type="text/ecmascript-6"在template中-没有影响到代码的识别？？？？？？？？？？？？？-->
 <script >
-import vheader from './components/header/header';
+import header from './components/header/header';
 
 const ERR_OK = 0;
 
@@ -35,12 +35,12 @@ export default {
       response = response.body;
       if (response.errno === ERR_OK) {
         this.seller = response.data;
-        console.log(this.seller);
+        console.log(this.seller.supports[0].description);
       }
     });
   },
   components: {
-    vheader
+    'v-header': header
   }
 }
 </script>
