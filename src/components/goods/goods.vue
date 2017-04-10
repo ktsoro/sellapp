@@ -1,22 +1,33 @@
 <template>
     <div class="goods">
-        <div class="menu-wrapper" ref="menuWrapper">
+        <div class="menu-wrapper"
+             ref="menuWrapper">
             <ul>
-                <li v-for="item in goods" class="item-wrapper" :class="{'current':currentIndex === index}">
+                <li v-for="(item,index) in goods"
+                    class="item-wrapper"
+                    :class="{'current':currentIndex === index}"
+                    @click="selectMenu(index,$event)">
                     <div class="text border-1px">
-                        <span class="icon" v-show="item.type>0" :class="classMap[item.type]"></span>{{item.name}}
+                        <span class="icon"
+                              v-show="item.type>0"
+                              :class="classMap[item.type]"></span>{{item.name}}
                     </div>
                 </li>
             </ul>
         </div>
-        <div class="foods-wrapper" ref="foodsWrapper">
+        <div class="foods-wrapper"
+             ref="foodsWrapper">
             <ul>
-                <li class="food-list food-list-hook" v-for="item in goods">
+                <!--food-list-hookz只是作为一个目标点去获取当前的滚动值-->
+                <li class="food-list food-list-hook"
+                    v-for="item in goods">
                     <h1 class="title">{{item.name}}</h1>
                     <ul>
-                        <li class="food-item" v-for="food in item.foods">
+                        <li class="food-item"
+                            v-for="food in item.foods">
                             <div class="icon">
-                                <img :src="food.icon" alt="">
+                                <img :src="food.icon"
+                                     alt="">
                             </div>
                             <div class="content">
                                 <h2 class="name">{{food.name}}</h2>
@@ -27,7 +38,8 @@
                                 </div>
                                 <div class="price">
                                     <span class="nowPrice">￥{{food.price}}</span>
-                                    <span class="oldPrice" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
+                                    <span class="oldPrice"
+                                          v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                                 </div>
                             </div>
                         </li>
@@ -35,77 +47,94 @@
                 </li>
             </ul>
         </div>
+        <shopcart :delivery-price="seller.deliveryPrice" :min-price="seller.inPrice"></shopcart>
     </div>
 </template>
     
 <script>
-    import BScroll from 'better-scroll';
-    const ERR_OK = 0;
+import BScroll from 'better-scroll';
+import shopcart from '../shopcart/shopcart'
+const ERR_OK = 0;
 
-    export default {
-        props: {
-            goods: {
-                type: Object
+export default {
+    props: {
+        seller: {
+            type: Object
+        }
+    },
+    data() {
+        return {
+            goods: [],
+            listHeight: [],
+            scrollY: 0
+        };
+    },
+    created() {
+        this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee'];
+        this.$http.get('/api/goods').then((response) => {
+            response = response.body;
+            if (response.errno === ERR_OK) {
+                this.goods = response.data;
+                this.$nextTick(() => {
+                    this._initScroll();
+                    this._calculateHeight();
+                });
             }
-        },
-        data() {
-            return {
-                goods: [],
-                listHeight: [],
-                scrollY: 0
-            };
-        },
-        created() {
-            this.classMap = ['decrease', 'discount', 'special', 'invoice', 'guarantee'];
-            this.$http.get('/api/goods').then((response) => {
-                response = response.body;
-                if (response.errno === ERR_OK) {
-                    this.goods = response.data;
-                    this.$nextTick(() => {
-                        this._initScroll();
-                    });
+        });
+    },
+    // 预先计算得到的默认值，标准参考值
+    computed: {
+        currentIndex() {
+            for (let i = 0; i < this.listHeight.length; i++) {
+                let height1 = this.listHeight[i];
+                let height2 = this.listHeight[i + 1];
+                console.log(height1);
+                if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
+                    return i;
                 }
+            }
+            return 0;
+        }
+    },
+    methods: {
+        // 此时的event获取的是该点击事件
+        selectMenu(index, event) {
+            if (!event._constructed) {
+                return;
+            }
+            let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
+            let el = foodList[index];
+            this.foodsScroll.scrollToElement(el, 300);
+            console.log(index);
+        },
+        _initScroll() {
+            this.menuScroll = new BScroll(this.$refs.menuWrapper, {
+                click: true
+            });// 左侧菜单组件
+
+            this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {
+                probeType: 3
+            });// 右侧商品组件
+
+            this.foodsScroll.on('scroll', (pos) => {
+                this.scrollY = Math.abs(Math.round(pos.y))
             });
         },
-        computed: {
-            currentIndex() {
-                for (let i = 0; i < this.listHeight.length; i++) {
-                    let height1 = this.listHeight[i];
-                    let height2 = this.listHeight[i + 1];
-                    console.log(height1);
-                    if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
-                        return i;
-                    }
-                }
-                return 0;
-            }
-        },
-        methods: {
-            _initScroll() {
-                this.menuScroll = new BScroll(this.$refs.menuWrapper, {click: true});// 左侧菜单组件
-
-                this.foodsScroll = new BScroll(this.$refs.foodsWrapper, {
-                    click: true,
-                    probeType: 3
-                    });// 右侧商品组件
-
-                this.foodsScroll.on('scroll', (pos) => {
-                    this.scrollY = Math.abs(Math.round(pos.y))
-                })
-            },
-            _calculateHeight() {
-                let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
-                let height = 0;
+        _calculateHeight() {
+            let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
+            let height = 0;
+            this.listHeight.push(height);
+            for (let i = 0; i < foodList.length; i++) {
+                let item = foodList[i];
+                height += item.clientHeight;
                 this.listHeight.push(height);
-                for (let i = 0; i < foodList.length; i++) {
-                    let item = foodList[i];
-                    height += item.clientHeight;
-                    this.listHeight.push(height);
-                }
-                console.log(height)
             }
         }
-    };
+    },
+    components: {
+        shopcart
+    }
+};
 </script>
     
 <style lang="stylus" rel="stylesheet/stylus">
@@ -128,14 +157,15 @@
                 width: 56px
                 padding: 0 12px
                 line-height: 14px
+                font-weight: 200
                 &.current
                     position: relative
                     z-index: 10
                     margin-top: -1px
                     background: #fff 
-                    font-weight: 700
                     .text
                         border-none()
+                        font-weight: 700  
                 .icon
                     display: inline-block
                     vertical-align: top
