@@ -1,63 +1,68 @@
 <template>
-    <div class="goods">
-        <div class="menu-wrapper"
-             ref="menuWrapper">
-            <ul>
-                <li v-for="(item,index) in goods"
-                    class="item-wrapper"
-                    :class="{'current':currentIndex === index}"
-                    @click="selectMenu(index,$event)">
-                    <div class="text border-1px">
-                        <span class="icon"
-                              v-show="item.type>0"
-                              :class="classMap[item.type]"></span>{{item.name}}
-                    </div>
-                </li>
-            </ul>
+    <div class="forVue">
+        <div class="goods">
+            <div class="menu-wrapper"
+                ref="menuWrapper">
+                <ul>
+                    <li v-for="(item,index) in goods"
+                        class="item-wrapper"
+                        :class="{'current':currentIndex === index}"
+                        @click="selectMenu(index,$event)">
+                        <div class="text border-1px">
+                            <span class="icon"
+                                v-show="item.type>0"
+                                :class="classMap[item.type]"></span>{{item.name}}
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            <div class="foods-wrapper"
+                ref="foodsWrapper">
+                <ul>
+                    <!--food-list-hookz只是作为一个目标点去获取当前的滚动值-->
+                    <li class="food-list food-list-hook"
+                        v-for="item in goods">
+                        <h1 class="title">{{item.name}}</h1>
+                        <ul>
+                            <li class="food-item"
+                                v-for="(food,index) in item.foods"
+                                @click="selectFood(food,$event)">
+                                <div class="icon">
+                                    <img :src="food.icon"
+                                        alt="">
+                                </div>
+                                <div class="content">
+                                    <h2 class="name">{{food.name}}</h2>
+                                    <p class="desc">{{food.description}}</p>
+                                    <div class="extra">
+                                        <span class="count">月售{{food.sellCount}}份</span>
+                                        <span>好评率{{food.rating}}%</span>
+                                    </div>
+                                    <div class="price">
+                                        <span class="nowPrice">￥{{food.price}}</span>
+                                        <span class="oldPrice"
+                                            v-show="food.oldPrice">￥{{food.oldPrice}}</span>
+                                    </div>
+                                    <div class="cartcontrol-wrapper">
+                                        <cartcontrol :food="food"></cartcontrol>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+            <shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
         </div>
-        <div class="foods-wrapper"
-             ref="foodsWrapper">
-            <ul>
-                <!--food-list-hookz只是作为一个目标点去获取当前的滚动值-->
-                <li class="food-list food-list-hook"
-                    v-for="item in goods">
-                    <h1 class="title">{{item.name}}</h1>
-                    <ul>
-                        <li class="food-item"
-                            v-for="food in item.foods">
-                            <div class="icon">
-                                <img :src="food.icon"
-                                     alt="">
-                            </div>
-                            <div class="content">
-                                <h2 class="name">{{food.name}}</h2>
-                                <p class="desc">{{food.description}}</p>
-                                <div class="extra">
-                                    <span class="count">月售{{food.sellCount}}份</span>
-                                    <span>好评率{{food.rating}}%</span>
-                                </div>
-                                <div class="price">
-                                    <span class="nowPrice">￥{{food.price}}</span>
-                                    <span class="oldPrice"
-                                          v-show="food.oldPrice">￥{{food.oldPrice}}</span>
-                                </div>
-                                <div class="cartcontrol-wrapper">
-                                    <cartcontrol :food="food"></cartcontrol>
-                                </div>
-                            </div>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
-        <shopcart :delivery-price="seller.deliveryPrice" :min-price="seller.inPrice"></shopcart>
+        <food :food="selectedFood" ref="food"></food>
     </div>
 </template>
     
 <script>
-import BScroll from 'better-scroll';
+import BScroll from 'better-scroll'
 import shopcart from '../shopcart/shopcart'
 import cartcontrol from '../cartcontrol/cartcontrol'
+import food from '../food/food'
 const ERR_OK = 0;
 
 export default {
@@ -70,7 +75,8 @@ export default {
         return {
             goods: [],
             listHeight: [],
-            scrollY: 0
+            scrollY: 0,
+            selectedFood: {}
         };
     },
     created() {
@@ -87,17 +93,28 @@ export default {
         });
     },
     // 预先计算得到的默认值，标准参考值
+    // 计算属性观测的是data中的对象，一旦data中的goods被改变了，就会重新进行计算
     computed: {
         currentIndex() {
             for (let i = 0; i < this.listHeight.length; i++) {
                 let height1 = this.listHeight[i];
                 let height2 = this.listHeight[i + 1];
-                console.log(height1);
                 if (!height2 || (this.scrollY >= height1 && this.scrollY < height2)) {
                     return i;
                 }
             }
             return 0;
+        },
+        selectFoods() {
+            let foods = [];
+            this.goods.forEach((good) => {
+                good.foods.forEach((food) => {
+                    if (food.count) {
+                        foods.push(food);
+                    }
+                });
+            });
+                return foods;
         }
     },
     methods: {
@@ -109,7 +126,6 @@ export default {
             let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
             let el = foodList[index];
             this.foodsScroll.scrollToElement(el, 300);
-            console.log(index);
         },
         _initScroll() {
             this.menuScroll = new BScroll(this.$refs.menuWrapper, {
@@ -125,7 +141,7 @@ export default {
                 this.scrollY = Math.abs(Math.round(pos.y))
             });
         },
-        _calculateHeight() {
+        _calculateHeight() { // 下划线代表私有方法。外界最好不要进行调用，可能本身并没有做模块化设置
             let foodList = this.$refs.foodsWrapper.getElementsByClassName('food-list-hook');
             let height = 0;
             this.listHeight.push(height);
@@ -134,11 +150,20 @@ export default {
                 height += item.clientHeight;
                 this.listHeight.push(height);
             }
+        },
+        selectFood (food, event) {
+            console.log('a' + this.$refs.food)
+            if (!event._constructed) {
+                return;
+            }
+            this.selectedFood = food;
+            this.$refs.food.show();   // 标记号是ref不是rel
         }
     },
     components: {
         shopcart,
-        cartcontrol
+        cartcontrol,
+        food
     }
 };
 </script>

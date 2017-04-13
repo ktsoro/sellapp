@@ -1,12 +1,13 @@
 <template>
     <div class="cartcontrol">
-        <transition name="move rotate">
-                <div class="cart-decrease icon-remove_circle_outline" 
-                        v-show="food.count>0" 
-                        @click="decreaseCart($event)"></div>
+        <transition name="move">
+            <div class="cart-decrease icon-remove_circle_outline" 
+                 v-show="food.count>0" 
+                 @click.stop.prevent="decreaseCart($event)">
+            </div>
         </transition>
         <div class="cart-count" v-show="food.count>0">{{food.count}}</div>
-        <div class="cart-add icon-add_circle" @click="addCart($event)"></div>
+        <div class="cart-add icon-add_circle" @click.stop.prevent="addCart($event)"></div>
     </div>
 </template>
 
@@ -24,12 +25,12 @@ import Vue from 'vue';
                 if (!event._constructed) {
                     return;
                 }
-                console.log('click')
                 if (!this.food.count) {
                     Vue.set(this.food, 'count', 1);
                 } else {
                     this.food.count++;
                 }
+                this.$emit('cart.add', event.target);
             },
             decreaseCart(event) {
                 if (!event._constructed) {
@@ -50,17 +51,23 @@ import Vue from 'vue';
     .cartcontrol
         font-size: 0
         .cart-decrease
-            opacity: 1
-            &.move-enter-active, &.move-leave-active, &.rotate-enter-active, &.rotate-leave-active
-                transition: all 0.8s
-            &.move-enter, &.move-leave-active
-                opacity: 0
-                transform: translate3D(24px, 0, 0)
-            &.rotate-enter, &.rotate-leave-active
+            &.move-enter-active
+                opacity: 1
+                transition: all 0.4s
                 transform: rotate(180deg)
-            &.rotate-enter-active
+            &.move-leave-active
+                opacity: 0
+                transition: all 0.4s
+                transform: rotate(180deg)
+            &.move-enter
+                opacity: 0
+                transform: translate3d(24px, 0, 0)
+            &.move-leave
+                opacity: 1
+                 
         .cart-decrease, .cart-add
             display: inline-block
+            vertical-align: top
             padding: 6px
             line-height: 24px
             font-size: 24px
