@@ -28,8 +28,15 @@
                             </div>
                         </div>
                     </div>
-                        <p class="desc">{{food.desciption}}</p>
-                    <div class="desc"></div>
+                    <split v-show="food.info"></split>
+                    <div class="info" v-show="food.info">
+                        <h3 class="title">商品介绍</h3>
+                        <p class="desc">{{food.info}}</p>
+                    </div>
+                    <split></split>
+                    <div class="rate">
+                        <h3 class="goodsrate"></h3>    
+                    </div>
                 </div>
             </div>
         </div>
@@ -40,6 +47,7 @@
 <script>
 import cartcontrol from '../cartcontrol/cartcontrol'
 import BScroll from 'better-scroll'
+import split from '../split/split'
 import Vue from 'vue'
     export default {
         props: {
@@ -56,13 +64,13 @@ import Vue from 'vue'
         methods: {
             show() {
                 this.showFlag = true;
-                this.$nextTick(() => {
+                this.$nextTick(() => {   // 实现滚动效果，在nextTick保证DOM元素在下一帧被渲染
                     if (!this.scroll) {
                         this.scroll = new BScroll(this.$refs.food, {
-                            click: true
+                            click: true // 内部元素可以被点击
                         });
                     } else {
-                        this.scroll.refresh();
+                        this.scroll.refresh(); // 重新做一次计算
                     }
                 })
             },
@@ -70,17 +78,20 @@ import Vue from 'vue'
                 this.showFlag = false;
             },
             addFirst(event) {
-                this.$emit('add', event.target)
-                Vue.set(this.food, 'count', 1);
+                // this.$emit('add', event.target)
+                if (!event._constructed) { // 防止pc端出现点击两次的情况
+                    return
+                }
+                Vue.set(this.food, 'count', 1); // 使用vue给food设置新的属性，count=1
             }
         },
         components: {
             cartcontrol,
-            BScroll
+            BScroll,
+            split
         },
         computed: {
             showCart() {
-                console.log(this.food);
                 if (!this.food.count) {
                     this.showDate = true;
                 } else {
@@ -100,7 +111,7 @@ import Vue from 'vue'
         left: 0
         top: 0
         bottom: 48px
-        z-index: 30
+        z-index: 30  //覆盖级别，正数且越大越靠近用户，越上层
         width: 100%
         background: #fff
         transition: all 0.2s
@@ -124,20 +135,20 @@ import Vue from 'vue'
                     left: 0
                     .icon-arrow_lift
                         display: block
-                        padding: 10px
+                        padding: 10px  // 加大触控面积
                         font-size: 20px
                         color: #fff
             .content
-                font-size: 0
                 .food-header
+                    font-size: 0  // 子元素是inline-block元素,可以通过设font-size来实现无间隙。也可以将span 元素中间的换行删除
                     position: relative
                     padding: 18px
                     .title
+                        line-height: 14px
+                        margin-bottom: 8px
                         font-size: 14px
                         font-weight: 700
-                        margin-bottom: 8px
                         color: rgb(7, 17, 27)
-                        line-height: 14px
                     .extra
                         display: flex
                         margin-bottom: 18px
@@ -161,24 +172,41 @@ import Vue from 'vue'
                             margin-left: 10px 
                     .addShopcart
                         position: absolute
-                        right: 18px
-                        bottom: 6px
+                        right: 10px
+                        bottom: 11px
                         height: 36px
                         width: 84px
+                        z-index: 10
                         .withNone
                             display: flex
+                            margin: 5px 0 0 2px
                             border-radius: 12px
                             background: rgb(0, 160, 220)
                             align-items: center
                             justify-content: center
                             height: 24px
+                            width: 74px
                             .text
                                 line-height:12px
                                 font-size: 10px
                                 color: #fff
                         .with
                             position: absolute
-                            right: 0
-                            bottom: 12px
+                            box-sizing: border-box // 使得内边距和边宽度失效
+
+                .info
+                    padding: 18px
+                    line-height: 24px
+                    .title
+                        font-size: 14px
+                        font-weight: 400
+                        color: rgb(7, 17, 27)
+                    .desc
+                        padding: 6px 8px 0 8px
+                        font-size: 12px
+                        font-weight: 200
+                        color: rgb(77, 85, 93)
+
+                    
 </style>
 

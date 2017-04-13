@@ -152,7 +152,6 @@ export default {
             }
         },
         selectFood (food, event) {
-            console.log('a' + this.$refs.food)
             if (!event._constructed) {
                 return;
             }
