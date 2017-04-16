@@ -82,6 +82,7 @@ import Vue from 'vue'
                 if (!event._constructed) { // 防止pc端出现点击两次的情况
                     return
                 }
+                this.$emit('add', event.target) // 向父组件提供可供调用的监听
                 Vue.set(this.food, 'count', 1); // 使用vue给food设置新的属性，count=1
             }
         },

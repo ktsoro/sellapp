@@ -30,7 +30,8 @@ import Vue from 'vue';
                 } else {
                     this.food.count++;
                 }
-                this.$emit('cart.add', event.target);
+                // console.log(event.target);
+                this.$emit('cart', event.target); // 向父组件提供可供调用的监听
             },
             decreaseCart(event) {
                 if (!event._constructed) {

@@ -13,13 +13,17 @@
                 <div class="desc">另需配送费￥{{deliveryPrice}}元</div>
             </div>
             <div class="content-right" @click.stop.prevent="pay">   <!--阻止向父元素进行冒泡-->
-                <div class="pay" :class="{'highLight':this.totalPrice > this.minPrice}">{{payDesc}}</div>
+                <div class="pay" :class="{'highLight':this.totalPrice >= this.minPrice}">{{payDesc}}</div>
             </div>
         </div>
-        <div class="ball-content">
-            <transition-group name="drop">
-                <div class="ball" v-for="ball in balls" v-show="ball.show" key="ball"></div>
-            </transition-group>
+        <div class="ball-container"  >
+            <div v-for="ball in balls"> <!--阻止产生transition-group的提示-->
+                <transition name="drop" @before-enter="beforeDrop" @enter="dropping" @after-enter="afterDrop">
+                <div class="ball"  v-show="ball.show">
+                    <div class="inner inner-hook"></div>
+                </div>
+                </transition>
+            </div>
         </div>
         <transition name="fold">
             <div class="shopcart-list" v-show="listShow">
@@ -29,13 +33,13 @@
                 </div>
                 <div class="list-content" ref="listContent">
                     <ul>
-                        <li class="food" v-for="food in selectFoods">
+                        <li class="food" v-for="food in selectFoods" >
                             <span class="name">{{food.name}}</span>
                             <div class="price">
                                 <span>￥{{food.price*food.count}}</span>
                             </div>
                             <div class="cartcontrol-wrapper">
-                                <cartcontrol :food="food"></cartcontrol>
+                                <cartcontrol @cart="addFood" :food="food"></cartcontrol>
                             </div>
                         </li>
                     </ul>
@@ -89,6 +93,7 @@ export default {
                     show: false
                 }
             ],
+            dropBalls: [],
             fold: true
         }
     },
@@ -157,6 +162,58 @@ export default {
                 return
             } else {
                 window.alert(`支付${this.totalPrice}元`)
+            }
+        },
+        addFood(target) {
+            this.drop(target);
+        },
+        drop(el) {
+            for (let i = 0; i < this.balls.length; i++) {
+                let ball = this.balls[i];
+                if (!ball.show) {
+                    ball.show = true;
+                    ball.el = el;
+                    this.dropBalls.push(ball);
+                    return;
+                }
+            }
+        },
+        beforeDrop(el) {
+            let count = this.balls.length;
+            while (count--) {
+                let ball = this.balls[count];
+                if (ball.show) {
+                    let rect = ball.el.getBoundingClientRect();
+                    let x = rect.left - 32;
+                    let y = -(window.innerHeight - rect.top - 22);
+                    el.style.display = '';
+                    y = `translated3d(0, ${y}px, 0)`;
+                    el.style.webkitTransform = y;
+                    el.style.transform = `translated3d(0, ${y}px, 0)`;
+                    let inner = el.getElementsByClassName('inner-hook')[0];
+                    inner.style.webkitTransform = `translate3d(${x}px, 0, 0)`;
+                    inner.style.transform = `translate3d(${x}px, 0, 0)`;
+                    console.log(y);
+                }
+            }
+        },
+        dropping(el, done) {
+            /* eslint-disable no-unused-vars */
+            let rf = el.offestHeight;
+            this.$nextTick(() => {
+                el.style.webkitTransform = 'translate3d(0, 0, 0)';
+                el.style.transform = 'translated3d(0, 0, 0)';
+                let inner = el.getElementsByClassName('inner-hook')[0];
+                inner.style.webkitTransform = 'translated3d(0, 0, 0)';
+                inner.style.transform = 'translated3d(0, 0, 0)';
+                el.addEventListener('transitionend', done)
+            });
+        },
+        afterDrop(el) {
+            let ball = this.dropBalls.shift();
+            if (ball) {
+                ball.show = false;
+                el.style.display = 'none';
             }
         }
     },
@@ -256,7 +313,7 @@ export default {
                     &.highLight
                         background: #00b43c
                         color: #fff
-        .ball-content
+        .ball-container
             .ball
                 position: fixed
                 left: 32px
@@ -266,6 +323,10 @@ export default {
                 height: 16px
                 border-radius: 50%
                 background: rgb(0, 160, 220)
+                transition: all 0.4s
+                .inner
+                    transition: all 0.4s
+                         
         .shopcart-list
             position: absolute
             left: 0

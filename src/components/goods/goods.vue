@@ -44,7 +44,7 @@
                                             v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                                     </div>
                                     <div class="cartcontrol-wrapper">
-                                        <cartcontrol :food="food"></cartcontrol>
+                                        <cartcontrol @cart="addFood" :food="food"></cartcontrol>
                                     </div>
                                 </div>
                             </li>
@@ -52,9 +52,9 @@
                     </li>
                 </ul>
             </div>
-            <shopcart :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
+            <shopcart ref="shopcart" :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
         </div>
-        <food :food="selectedFood" ref="food"></food>
+        <food @add="addFood" :food="selectedFood" ref="food"></food>
     </div>
 </template>
     
@@ -157,6 +157,13 @@ export default {
             }
             this.selectedFood = food;
             this.$refs.food.show();   // 标记号是ref不是rel
+        },
+        addFood(target) {
+            this._drop(target);
+        },
+        _drop(target) {
+            // 体验优化。异步执行下落动画
+                this.$refs.shopcart.drop(target);
         }
     },
     components: {
