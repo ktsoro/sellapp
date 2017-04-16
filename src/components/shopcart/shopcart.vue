@@ -187,13 +187,12 @@ export default {
                     let x = rect.left - 32;
                     let y = -(window.innerHeight - rect.top - 22);
                     el.style.display = '';
-                    y = `translated3d(0, ${y}px, 0)`;
-                    el.style.webkitTransform = y;
+                    el.style.webkitTransform = `translated3d(0, ${y}px, 0)`;
                     el.style.transform = `translated3d(0, ${y}px, 0)`;
                     let inner = el.getElementsByClassName('inner-hook')[0];
                     inner.style.webkitTransform = `translate3d(${x}px, 0, 0)`;
                     inner.style.transform = `translate3d(${x}px, 0, 0)`;
-                    console.log(y);
+
                 }
             }
         },
