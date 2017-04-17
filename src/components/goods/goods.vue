@@ -163,7 +163,9 @@ export default {
         },
         _drop(target) {
             // 体验优化。异步执行下落动画
+            this.$nextTick(() => {
                 this.$refs.shopcart.drop(target);
+            })
         }
     },
     components: {

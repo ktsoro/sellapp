@@ -1,11 +1,15 @@
 <template>
     <transition name="move">
-        <div class="food" v-show="showFlag" ref="food">
+        <div class="food"
+             v-show="showFlag"
+             ref="food">
             <div class="food-content">
                 <div class="image-header">
-                    <img :src="food.image" alt="">
-                    <div class="back" @click="hide">
-                        <i class="icon-arrow_lift" ></i>
+                    <img :src="food.image"
+                         alt="">
+                    <div class="back"
+                         @click="hide">
+                        <i class="icon-arrow_lift"></i>
                     </div>
                 </div>
                 <div class="content">
@@ -17,25 +21,61 @@
                         </div>
                         <div class="price">
                             <div class="nowPrice">￥{{food.price}}</div>
-                            <div class="oldPrice" v-show="food.oldPrice">￥{{food.oldPrice}}</div>
+                            <div class="oldPrice"
+                                 v-show="food.oldPrice">￥{{food.oldPrice}}</div>
                         </div>
                         <div class="addShopcart">
-                            <div class="withNone" v-show="showCart">
-                                <div class="text" @click="addFirst">加入购物车</div>
+                            <div class="withNone"
+                                 v-show="!food.count ||!food.count === 0">
+                                <!--2nd条件不生效-->
+                                <div class="text"
+                                     @click="addFirst">加入购物车</div>
                             </div>
-                            <div class="with" v-show="food.count>0">
-                                <cartcontrol :food="food"></cartcontrol>
+                            <div class="with"
+                                 v-show="food.count>0">
+                                <cartcontrol @cart="addFood"
+                                             :food="food"></cartcontrol>
                             </div>
                         </div>
                     </div>
                     <split v-show="food.info"></split>
-                    <div class="info" v-show="food.info">
+                    <div class="info"
+                         v-show="food.info">
                         <h3 class="title">商品介绍</h3>
                         <p class="desc">{{food.info}}</p>
                     </div>
                     <split></split>
-                    <div class="rate">
-                        <h3 class="goodsrate"></h3>    
+                    <div class="rating">
+                        <h1 class="title">商品评价</h1>
+                        <ratingselect :selectType="selectType"
+                                      :onlyContent="onlyContent"
+                                      :desc="desc"
+                                      :ratings="food.ratings"
+                                      @select="selectRating"
+                                      @toggle="toggleContent"></ratingselect>
+                        <div class="rating-wrapper">
+                            <ul v-show="food.ratings && food.ratings.length">
+                                <li v-for="rating in food.ratings"
+                                    class="rating-item border-1px">
+                                    <div class="user">
+                                        <span class="name">{{rating.username}}</span>
+                                        <img :src="rating.avatar"
+                                             alt=""
+                                             class="avatar"
+                                             width="12"
+                                             height="12">
+                                    </div>
+                                    <div class="time">{{rating.rateTime | formatDate}}</div>
+                                    <p class="text">
+                                        <span :class="{'icon-thumb_up':rating.rateType === 0,
+                                                       'icon-thumb_down':rating.rateType === 1}"
+                                              class="icon"></span>
+                                        {{rating.text}}
+                                    </p>
+                                </li>
+                            </ul>
+                            <div class="no-rating" v-show="!food.ratings || !food.ratings.length">暂无评价</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -46,67 +86,94 @@
 
 <script>
 import cartcontrol from '../cartcontrol/cartcontrol'
-import BScroll from 'better-scroll'
 import split from '../split/split'
+import ratingselect from '../ratingselect/ratingselect'
+import {formatDate} from '../../common/js/data.js'
+import BScroll from 'better-scroll'
 import Vue from 'vue'
-    export default {
-        props: {
-            food: {
-                type: Object
-            }
-        },
-        data() {
-           return {
-                showFlag: false,
-                showDate: true
-           }
-        },
-        methods: {
-            show() {
-                this.showFlag = true;
-                this.$nextTick(() => {   // 实现滚动效果，在nextTick保证DOM元素在下一帧被渲染
-                    if (!this.scroll) {
-                        this.scroll = new BScroll(this.$refs.food, {
-                            click: true // 内部元素可以被点击
-                        });
-                    } else {
-                        this.scroll.refresh(); // 重新做一次计算
-                    }
-                })
-            },
-            hide() {
-                this.showFlag = false;
-            },
-            addFirst(event) {
-                // this.$emit('add', event.target)
-                if (!event._constructed) { // 防止pc端出现点击两次的情况
-                    return
-                }
-                this.$emit('add', event.target) // 向父组件提供可供调用的监听
-                Vue.set(this.food, 'count', 1); // 使用vue给food设置新的属性，count=1
-            }
-        },
-        components: {
-            cartcontrol,
-            BScroll,
-            split
-        },
-        computed: {
-            showCart() {
-                if (!this.food.count) {
-                    this.showDate = true;
-                } else {
-                    this.showDate = false;
-                }
-                return this.showDate;
+
+/* const POSITION = 0;
+const NEGATIVE = 1; */
+const ALL = 2;
+
+export default {
+    props: {
+        food: {
+            type: Object
+        }
+    },
+    data() {
+        return {
+            showFlag: false,
+            selectType: ALL,
+            onlyContent: true,
+            desc: {
+                all: '全部',
+                positive: '推荐',
+                negative: '吐槽'
             }
         }
-    };
+    },
+    methods: {
+        show() {
+            this.showFlag = true;
+            this.selectType = ALL;
+            this.onlyContent = true;
+            this.$nextTick(() => {   // 实现滚动效果，在nextTick保证DOM元素在下一帧被渲染
+                if (!this.scroll) {
+                    this.scroll = new BScroll(this.$refs.food, {
+                        click: true // 内部元素可以被点击
+                    });
+                } else {
+                    this.scroll.refresh(); // 重新做一次计算
+                }
+            })
+        },
+        hide() {
+            this.showFlag = false;
+        },
+        addFirst(event) {
+            // this.$emit('add', event.target)
+            if (!event._constructed) { // 防止pc端出现点击两次的情况
+                return
+            }
+            this.$emit('add', event.target) // 向父组件提供可供调用的监听
+            Vue.set(this.food, 'count', 1); // 使用vue给food设置新的属性，count=1
+        },
+        addFood(target) {
+            this.$emit('add', target);
+        },
+        selectRating(type) {
+            this.selectType = type;
+            this.$nextTick(() => {
+                this.scroll.refresh();
+            })
+        },
+        toggleContent() {
+            this.onlyContent = !this.onlyContent;
+            this.$nextTick(() => {
+                this.scroll.refresh();
+            })
+        }
+    },
+    components: {
+        cartcontrol,
+        BScroll,
+        split,
+        ratingselect
+    },
+    filters: {
+        formatDate(time) {
+            let date = new Date(time);
+            return formatDate(date, 'yyyy-MM-dd hh:mm');
+        }
+    }
+};
 </script>
 
 
 <style lang="stylus" rel="stylesheet/stylus">
-
+@import "../../common/stylus/mixin.styl"
     .food
         position: fixed
         left: 0
@@ -207,7 +274,49 @@ import Vue from 'vue'
                         font-size: 12px
                         font-weight: 200
                         color: rgb(77, 85, 93)
-
-                    
+                .rating
+                    .title
+                        margin: 18px
+                        line-height: 14px
+                        font-size: 14px
+                        color: rgb(7, 17, 27)
+                    .rating-wrapper
+                        .rating-item
+                            padding: 16px 0
+                            margin: 0 18px
+                            border-1px(rgba(7, 17, 27, 0.1))
+                            .user
+                                position: fixed
+                                right: 18px
+                                font-size: 0
+                                .name
+                                    display: inline-block
+                                    vertical-align: top
+                                    font-size: 10px
+                                    color: rgb(147, 153, 159)
+                                    line-height: 12px
+                                    margin-right: 6px
+                                .avatar
+                                    border-radius: 50%
+                            .time
+                                margin-bottom: 6px 
+                                font-size: 10px
+                                color: rgb(147, 153, 159)
+                                line-height: 12px
+                            .text
+                                font-size: 12px
+                                color: rgb(7, 17, 27)
+                                line-height: 16px
+                                .icon
+                                    line-height: 24px
+                                    &.icon-thumb_up
+                                        font-size: 12px
+                                        color: rgb(0, 160, 220)
+                                    &.icon-thumb_down
+                                        color: rgb(147, 153, 159)
+                        .no-rating
+                            padding: 16px 18px
+                            font-size: 12px
+                            color: rgb(147, 153, 159)
 </style>
 

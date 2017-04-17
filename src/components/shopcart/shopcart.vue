@@ -143,30 +143,6 @@ export default {
         }
     },
     methods: {
-        toggleList() {
-            if (!this.totalCount) {
-                return;
-            }
-            this.fold = !this.fold;
-        },
-        empty() {
-            this.selectFoods.forEach((food) => {
-                food.count = 0;
-            })
-        },
-        hideList() {
-            this.fold = true;
-        },
-        pay() {
-            if (this.totalPrice < this.minPrice) {
-                return
-            } else {
-                window.alert(`支付${this.totalPrice}元`)
-            }
-        },
-        addFood(target) {
-            this.drop(target);
-        },
         drop(el) {
             for (let i = 0; i < this.balls.length; i++) {
                 let ball = this.balls[i];
@@ -178,6 +154,30 @@ export default {
                 }
             }
         },
+        toggleList() {
+            if (!this.totalCount) {
+                return;
+            }
+            this.fold = !this.fold;
+        },
+        hideList() {
+            this.fold = true;
+        },
+        empty() {
+            this.selectFoods.forEach((food) => {
+                food.count = 0;
+            })
+        },
+        pay() {
+            if (this.totalPrice < this.minPrice) {
+                return
+            } else {
+                window.alert(`支付${this.totalPrice}元`)
+            }
+        },
+        addFood(target) {
+            this.drop(target);
+        },
         beforeDrop(el) {
             let count = this.balls.length;
             while (count--) {
@@ -187,24 +187,23 @@ export default {
                     let x = rect.left - 32;
                     let y = -(window.innerHeight - rect.top - 22);
                     el.style.display = '';
-                    el.style.webkitTransform = `translated3d(0, ${y}px, 0)`;
-                    el.style.transform = `translated3d(0, ${y}px, 0)`;
+                    el.style.webkitTransform = `translate3d(0, ${y}px, 0)`; // 代码查检
+                    el.style.transform = `translate3d(0, ${y}px, 0)`;
                     let inner = el.getElementsByClassName('inner-hook')[0];
                     inner.style.webkitTransform = `translate3d(${x}px, 0, 0)`;
                     inner.style.transform = `translate3d(${x}px, 0, 0)`;
-
                 }
             }
         },
         dropping(el, done) {
             /* eslint-disable no-unused-vars */
-            let rf = el.offestHeight;
+            let rf = el.offsetHeight;
             this.$nextTick(() => {
                 el.style.webkitTransform = 'translate3d(0, 0, 0)';
                 el.style.transform = 'translated3d(0, 0, 0)';
                 let inner = el.getElementsByClassName('inner-hook')[0];
-                inner.style.webkitTransform = 'translated3d(0, 0, 0)';
-                inner.style.transform = 'translated3d(0, 0, 0)';
+                inner.style.webkitTransform = 'translate3d(0, 0, 0)';
+                inner.style.transform = 'translate3d(0, 0, 0)';
                 el.addEventListener('transitionend', done)
             });
         },
@@ -312,20 +311,19 @@ export default {
                     &.highLight
                         background: #00b43c
                         color: #fff
-        .ball-container
+        .ball-container         // 动画
             .ball
                 position: fixed
                 left: 32px
                 bottom: 22px
                 z-index: 200
-                width: 16px
-                height: 16px
-                border-radius: 50%
-                background: rgb(0, 160, 220)
-                transition: all 0.4s
+                transition: all 0.4s cubic-bezier(0.49, -0.29, 0.75, 0.41)
                 .inner
-                    transition: all 0.4s
-                         
+                    width: 16px
+                    height: 16px
+                    border-radius: 50%
+                    background: rgb(0, 160, 220)
+                    transition: all 0.4s linear    
         .shopcart-list
             position: absolute
             left: 0
