@@ -4,13 +4,13 @@
              v-show="showFlag"
              ref="food">
             <div class="food-content">
+                <div class="back"
+                     @click="hide">
+                        <i class="icon-arrow_lift"></i>
+                </div>
                 <div class="image-header">
                     <img :src="food.image"
                          alt="">
-                    <div class="back"
-                         @click="hide">
-                        <i class="icon-arrow_lift"></i>
-                    </div>
                 </div>
                 <div class="content">
                     <div class="food-header">
@@ -56,7 +56,8 @@
                         <div class="rating-wrapper">
                             <ul v-show="food.ratings && food.ratings.length">
                                 <li v-for="rating in food.ratings"
-                                    class="rating-item border-1px">
+                                    class="rating-item border-1px"
+                                    v-show="needShow(rating.rateType, rating.text)">
                                     <div class="user">
                                         <span class="name">{{rating.username}}</span>
                                         <img :src="rating.avatar"
@@ -69,12 +70,12 @@
                                     <p class="text">
                                         <span :class="{'icon-thumb_up':rating.rateType === 0,
                                                        'icon-thumb_down':rating.rateType === 1}"
-                                              class="icon"></span>
-                                        {{rating.text}}
+                                              class="icon"></span> {{rating.text}}
                                     </p>
                                 </li>
                             </ul>
-                            <div class="no-rating" v-show="!food.ratings || !food.ratings.length">暂无评价</div>
+                            <div class="no-rating"
+                                 v-show="!food.ratings || !food.ratings.length">暂无评价</div>
                         </div>
                     </div>
                 </div>
@@ -88,12 +89,10 @@
 import cartcontrol from '../cartcontrol/cartcontrol'
 import split from '../split/split'
 import ratingselect from '../ratingselect/ratingselect'
-import {formatDate} from '../../common/js/data.js'
+import { formatDate } from '../../common/js/date.js'
 import BScroll from 'better-scroll'
 import Vue from 'vue'
 
-/* const POSITION = 0;
-const NEGATIVE = 1; */
 const ALL = 2;
 
 export default {
@@ -154,6 +153,16 @@ export default {
             this.$nextTick(() => {
                 this.scroll.refresh();
             })
+        },
+        needShow(type, text) {
+            if (this.onlyContent && !text) {
+                return false
+            }
+            if (this.selectType === ALL) {
+                return true
+            } else {
+                return type === this.selectType
+            }
         }
     },
     components: {
@@ -186,6 +195,18 @@ export default {
         &.move-enter-active, &.move-leave-active
             transform: translate3d(100%, 0, 0)
         .food-content
+            .back
+                position: fixed
+                top: 10px
+                left: 10px
+                z-index: 10
+                .icon-arrow_lift
+                    display: block
+                    padding: 9px  // 加大触控面积
+                    font-size: 20px
+                    color: #fff
+                    background: rgb(0, 160, 220)
+                    border-radius: 50%
             .image-header
                 position: relative
                 width: 100%
@@ -197,15 +218,6 @@ export default {
                     left: 0
                     width: 100%
                     height: 100%
-                .back
-                    position: absolute
-                    top: 10px
-                    left: 0
-                    .icon-arrow_lift
-                        display: block
-                        padding: 10px  // 加大触控面积
-                        font-size: 20px
-                        color: #fff
             .content
                 .food-header
                     font-size: 0  // 子元素是inline-block元素,可以通过设font-size来实现无间隙。也可以将span 元素中间的换行删除
