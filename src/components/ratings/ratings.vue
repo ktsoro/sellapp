@@ -29,43 +29,46 @@
             <ratingselect :ratings="ratings"
                           :selectType="selectType"
                           :onlyContent="onlyContent"
+                          @select="selectRating"
                           @toggle="toggleContent">
             </ratingselect>
             <div class="rating-wrapper">
                 <ul>
                     <li v-for="rating in ratings"
                         class="rating-item border-1px"
-                        v-show="needShow(rating.Type, rating.text)">
-                        <div class="user">
+                        v-show="needShow(rating.rateType, rating.text)">
+                        <div class="time">{{rating.rateTime | formatDate}}</div>
+                        <div class="avatar">
                             <img :src="rating.avatar"
-                                 alt=""
-                                 class="avatar"
                                  width="28"
                                  height="28">
-                            <span class="name">{{rating.username}}</span>
                         </div>
-                        <div class="time">{{rating.rateTime | formatDate}}</div>
                         <div class="rating">
+                            <span class="name">{{rating.username}}</span>
                             <star :size="36"
                                   :score="rating.score || 0"></star>
+                            <div class="deliveryTime" v-show="rating.deliveryTime">
+                                {{rating.deliveryTime}}分钟送达
+                            </div>
+                            <p class="text">{{rating.text}}</p>
+                            <ul class="recommend">
+                                <span :class="{'icon-thumb_up': rating.rateType === 0, 'icon-thumb-down': rating.rateType ===1}"
+                                  class="icon"
+                                  v-show="rating.recommend && rating.recommend.length"></span>
+                                <li v-for="recommend in rating.recommend"
+                                    class="recommend-item"
+                                    >{{recommend}}</li>
+                            </ul>
                         </div>
-                        <div class="deliveryTime"
-                             v-show="rating.deliveryTime">{{rating.deliveryTime}}分钟送达</div>
-                        <p class="text">
-                            <span :class="{'icon-thumb_up': rating.rateType === 0,
-                                                           'icon-thumb-down': rating.rateType ===1}"
-                                  class="icon"></span> {{rating.text}}
-                        </p>
                     </li>
                 </ul>
             </div>
             <div class="no-rating"
                  v-show="!ratings || !ratings.length">暂无评价</div>
         </div>
-        <shopcart ref="shopcart"
-                  :select-foods="selectFoods"
-                  :delivery-price="seller.deliveryPrice"
-                  :min-price="seller.minPrice"></shopcart>
+        <!--<shopcart ref="shopcart" 
+                  :deliveryPrice="seller.deliveryPrice"
+                  :min-price="seller.minPrice"></shopcart>-->
     </div>
 </template>
     
@@ -88,7 +91,7 @@ export default {
     },
     data() {
         return {
-            selectType: 2,
+            selectType: ALL,
             onlyContent: true,
             ratings: [] // {}代表Object，[]代表Array
         }
@@ -111,6 +114,12 @@ export default {
           return type === this.selectType;
         }
       },
+        selectRating(type) {
+            this.selectType = type;
+            this.$nextTick(() => {
+                this.scroll.refresh();
+            })
+        },
         toggleContent() {
             this.onlyContent = !this.onlyContent;
             this.$nextTick(() => {
@@ -191,38 +200,65 @@ export default {
                     margin-left: 12px
                 .text
                     flex: none
+    .ratingselect
+        margin-top: 18px
     .rating-wrapper
         .rating-item
+            display: flex
             padding: 16px 0
             margin: 0 18px
             border-1px(rgba(7, 17, 27, 0.1))
-            .user
-                font-size: 0
-                .name
-                    display: inline-block
-                    vertical-align: top
-                    font-size: 10px
-                    color: rgb(147, 153, 159)
-                    line-height: 12px
-                    margin-right: 6px
-                .avatar
-                    border-radius: 50%
             .time
-                margin-bottom: 6px 
+                position: absolute
+                right: 18px 
+                top: 16px
                 font-size: 10px
+                font-weight: 200
                 color: rgb(147, 153, 159)
                 line-height: 12px
-            .text
-                font-size: 12px
-                color: rgb(7, 17, 27)
-                line-height: 16px
-                .icon
-                    line-height: 24px
-                    &.icon-thumb_up
+            .avatar
+                img
+                    border-radius: 50%
+            .rating
+                flex: 1
+                margin-left: 12px
+                .name
+                    display: block
+                    font-size: 10px
+                    color: rgb(7, 17, 27)
+                    line-height: 12px
+                    margin-bottom: 4px
+                .star
+                    display: inline-block
+                    margin-bottom: 6px
+                .deliveryTime
+                    display: inline-block
+                    margin-left: 6px
+                    font-size: 10px
+                    font-weight: 200
+                    color: rgb(147, 153, 159)
+                    line-height: 12px
+                .text
+                    font-size: 12px
+                    color: rgb(7, 17, 27)
+                    line-height: 18px
+                    margin-bottom: 8px
+                .recommend
+                    display: inline-block
+                    .icon
+                        font-size: 12px
+                        line-height: 16px
                         font-size: 12px
                         color: rgb(0, 160, 220)
-                    &.icon-thumb_down
+                    .recommend-item
+                        display: inline-block
+                        font-size: 9px
+                        margin: 3px 4px
+                        padding: 3px 6px
+                        border: 1px solid rgba(7, 17, 27, 0.1)
                         color: rgb(147, 153, 159)
+                        border-radius: 2px
+                        background: #fff 
         .no-rating
             padding: 16px 18px
             font-size: 12px

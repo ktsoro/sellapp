@@ -1,40 +1,46 @@
 <template>
   <div>
-  <v-header :seller="seller"></v-header>
-  <div class="tab" >
-    <div class="tab-item">
-      <router-link to="/goods">商品</router-link>
+    <v-header :seller="seller"></v-header>
+    <div class="tab">
+      <div class="tab-item">
+        <router-link to="/goods">商品</router-link>
+      </div>
+      <div class="tab-item">
+        <router-link to="/ratings">评论</router-link>
+      </div>
+      <div class="tab-item">
+        <router-link to="/seller">商家</router-link>
+      </div>
     </div>
-    <div class="tab-item">
-      <router-link to="/ratings">评论</router-link>
-    </div>
-    <div class="tab-item">
-      <router-link to="/seller">商家</router-link>
-    </div>
-  </div>
-  <div id="app"></div>
-  <keep-alive>
+    <div id="app"></div>
+    <keep-alive> <!--保留状态-->
       <router-view :seller="seller"></router-view>
-  </keep-alive>
+    </keep-alive>
   </div>
 </template>
 <!--？？？？？type="text/ecmascript-6"在template中-没有影响到代码的识别？？？？？？？？？？？？？-->
 <script >
 import header from './components/header/header';
-
+import { urlParse } from './common/js/util.js'  // 函数加入需要有大括号
 const ERR_OK = 0;
 
 export default {
   data() {
     return {
-      seller: {}
+      seller: {
+        id: (() => {
+          let querryParam = urlParse()
+          return querryParam.id
+        })()
+      }
     }
   },
   created() {
-    this.$http.get('/api/seller').then((response) => {
+    this.$http.get('/api/seller?id=' + this.seller.id).then((response) => {
       response = response.body;
       if (response.errno === ERR_OK) {
-        this.seller = response.data;
+          // this.seller = response.data; 这样会导致id不能加入到seller中
+           this.seller = Object.assign({}, this.seller, response.data)
       }
     });
   },

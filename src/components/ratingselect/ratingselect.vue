@@ -30,12 +30,13 @@
 const POSITIVE = 0;
 const NEGATIVE = 1;
 const ALL = 2;
+
 export default {
     props: {
         ratings: {
             type: Array,
             default() {
-                return;
+                return []; // 假如没有的话返回一个空值
             }
         },
         selectType: {

@@ -1,35 +1,24 @@
 <template>
     <div class="forVue">
         <div class="goods">
-            <div class="menu-wrapper"
-                ref="menuWrapper">
+            <div class="menu-wrapper" ref="menuWrapper">
                 <ul>
-                    <li v-for="(item,index) in goods"
-                        class="item-wrapper"
-                        :class="{'current':currentIndex === index}"
-                        @click="selectMenu(index,$event)">
+                    <li v-for="(item,index) in goods" class="item-wrapper" :class="{'current':currentIndex === index}" @click="selectMenu(index,$event)">
                         <div class="text border-1px">
-                            <span class="icon"
-                                v-show="item.type>0"
-                                :class="classMap[item.type]"></span>{{item.name}}
+                            <span class="icon" v-show="item.type>0" :class="classMap[item.type]"></span>{{item.name}}
                         </div>
                     </li>
                 </ul>
             </div>
-            <div class="foods-wrapper"
-                ref="foodsWrapper">
+            <div class="foods-wrapper" ref="foodsWrapper">
                 <ul>
                     <!--food-list-hookz只是作为一个目标点去获取当前的滚动值-->
-                    <li class="food-list food-list-hook"
-                        v-for="item in goods">
+                    <li class="food-list food-list-hook" v-for="item in goods">
                         <h1 class="title">{{item.name}}</h1>
                         <ul>
-                            <li class="food-item"
-                                v-for="(food,index) in item.foods"
-                                @click="selectFood(food,$event)">
+                            <li class="food-item" v-for="(food,index) in item.foods" @click="selectFood(food,$event)">
                                 <div class="icon">
-                                    <img :src="food.icon"
-                                        alt="">
+                                    <img :src="food.icon" alt="">
                                 </div>
                                 <div class="content">
                                     <h2 class="name">{{food.name}}</h2>
@@ -40,8 +29,7 @@
                                     </div>
                                     <div class="price">
                                         <span class="nowPrice">￥{{food.price}}</span>
-                                        <span class="oldPrice"
-                                            v-show="food.oldPrice">￥{{food.oldPrice}}</span>
+                                        <span class="oldPrice" v-show="food.oldPrice">￥{{food.oldPrice}}</span>
                                     </div>
                                     <div class="cartcontrol-wrapper">
                                         <cartcontrol @cart="addFood" :food="food"></cartcontrol>
@@ -52,7 +40,7 @@
                     </li>
                 </ul>
             </div>
-            <shopcart ref="shopcart" :select-foods="selectFoods" :delivery-price="seller.deliveryPrice" :min-price="seller.minPrice"></shopcart>
+            <shopcart ref="shopcart" :selectFoods="selectFoods" :deliveryPrice="seller.deliveryPrice" :minPrice="seller.minPrice"></shopcart>
         </div>
         <food @add="addFood" :food="selectedFood" ref="food"></food>
     </div>
@@ -63,6 +51,8 @@ import BScroll from 'better-scroll'
 import shopcart from '../shopcart/shopcart'
 import cartcontrol from '../cartcontrol/cartcontrol'
 import food from '../food/food'
+// import { eventBus } from '../../common/js/event-bus.js'
+
 const ERR_OK = 0;
 
 export default {
@@ -114,7 +104,7 @@ export default {
                     }
                 });
             });
-                return foods;
+            return foods;
         }
     },
     methods: {
@@ -151,7 +141,7 @@ export default {
                 this.listHeight.push(height);
             }
         },
-        selectFood (food, event) {
+        selectFood(food, event) {
             if (!event._constructed) {
                 return;
             }
@@ -172,6 +162,11 @@ export default {
         shopcart,
         cartcontrol,
         food
+    },
+    watch: {
+        'selectFoods'() {
+            this.$emit(this.selectFoods)
+        }
     }
 };
 </script>
@@ -183,6 +178,7 @@ export default {
         position: absolute
         top: 174px
         bottom: 46px
+        left: 0
         width: 100%
         font-size: 0
         overflow: hidden
